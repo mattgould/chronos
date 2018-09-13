@@ -6,18 +6,25 @@ import java.util.logging.{Level, Logger}
 import javax.servlet._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
-import org.apache.mesos.chronos.scheduler.jobs.JobScheduler
 import com.google.inject.Inject
+import mesosphere.chaos.http.HttpConf
+import org.apache.commons.lang3.exception.ExceptionUtils
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.jobs.JobScheduler
 
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
 
 /**
- * Simple filter that redirects to the leader if applicable.
- * @author Florian Leibert (flo@leibert.de)
- */
-class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
-  val log = Logger.getLogger(getClass.getName)
+  * Simple filter that redirects to the leader if applicable.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
+class RedirectFilter @Inject()(
+    val jobScheduler: JobScheduler,
+    val config: SchedulerConfiguration with HttpConf)
+    extends Filter {
+  val log: Logger = Logger.getLogger(getClass.getName)
 
   def init(filterConfig: FilterConfig) {}
 
@@ -28,8 +35,9 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
       case request: HttpServletRequest =>
         val leaderData = jobScheduler.getLeader
         val response = rawResponse.asInstanceOf[HttpServletResponse]
+        val currentId = "%s:%d".format(config.hostname(), config.httpPort())
 
-        if (jobScheduler.isLeader) {
+        if (jobScheduler.isLeader || currentId == leaderData) {
           chain.doFilter(request, response)
         } else {
           var proxyStatus: Int = 200
@@ -40,8 +48,8 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
 
             val proxy =
               buildUrl(leaderData, request)
-                .openConnection().asInstanceOf[HttpURLConnection]
-
+                .openConnection()
+                .asInstanceOf[HttpURLConnection]
 
             val names = request.getHeaderNames
             // getHeaderNames() and getHeaders() are known to return null, see:
@@ -89,8 +97,13 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
             responseOutputStream.close()
           } catch {
             case t: Exception =>
-              if ((200 to 299) contains proxyStatus) response.sendError(500)
-              log.log(Level.WARNING, "Exception while proxying!", t)
+              if ((200 to 299) contains proxyStatus) {
+                log.log(Level.WARNING, "Exception while proxying!", t)
+                response.sendError(
+                  500,
+                  "Error proxying request to leader (maybe the leadership just changed?)\n\nError:\n" + ExceptionUtils
+                    .getStackTrace(t))
+              }
           }
         }
       case _ =>
@@ -107,7 +120,9 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
 
   def buildUrl(leaderData: String, request: HttpServletRequest) = {
     if (request.getQueryString != null) {
-      new URL("http://%s%s?%s".format(leaderData, request.getRequestURI, request.getQueryString))
+      new URL(
+        "http://%s%s?%s"
+          .format(leaderData, request.getRequestURI, request.getQueryString))
     } else {
       new URL("http://%s%s".format(leaderData, request.getRequestURI))
     }

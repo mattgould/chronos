@@ -2,11 +2,11 @@ package org.apache.mesos.chronos.scheduler.mesos
 
 import akka.actor._
 import akka.testkit.TestProbe
-import com.codahale.metrics.{ Counter, MetricRegistry }
+import com.codahale.metrics.{Counter, MetricRegistry}
 import mesosphere.chaos.http.HttpConf
-import mesosphere.mesos.util.FrameworkIdUtil
-import org.apache.mesos.SchedulerDriver
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.jobs.MockJobUtils
+import org.specs2.matcher.ThrownExpectations
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 
@@ -67,7 +67,7 @@ class MesosOfferReviverActorSpec extends SpecificationWithJUnit with Mockito {
       probe.watch(actorRef)
       probe.expectMsgAnyClassOf(classOf[Terminated])
 
-      there was one(driverFactory.mesosDriver.get).reviveOffers()
+      there was one(driverFactory.get).reviveOffers()
       there was one(reviveOffersCounter).inc()
 
       scheduleCheckCalled must beEqualTo(1)
@@ -75,7 +75,7 @@ class MesosOfferReviverActorSpec extends SpecificationWithJUnit with Mockito {
   }
 }
 
-trait context extends BeforeAfter with Mockito {
+trait context extends BeforeAfter with Mockito with ThrownExpectations {
   implicit var actorSystem: ActorSystem = _
   var driverFactory: MesosDriverFactory = _
   var conf: SchedulerConfiguration with HttpConf = _
@@ -86,9 +86,8 @@ trait context extends BeforeAfter with Mockito {
   def before = {
     actorSystem = ActorSystem()
     conf = new SchedulerConfiguration with HttpConf {}
-    conf.afterInit()
-    driverFactory = new MesosDriverFactory(mock[org.apache.mesos.Scheduler], mock[FrameworkIdUtil], conf)
-    driverFactory.mesosDriver = Some(mock[SchedulerDriver])
+    conf.verify()
+    driverFactory = MockJobUtils.mockDriverFactory
 
     metrics = spy(new MetricRegistry())
     reviveOffersCounter = metrics.register(

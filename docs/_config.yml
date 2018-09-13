@@ -16,9 +16,9 @@ sass:
   style: :compressed
 
 baseurl: "/chronos"
-highlighter: pygments
+highlighter: rouge
 lsi: false
-markdown: redcarpet
+markdown: kramdown
 redcarpet:
   extensions: [with_toc_data, tables]
 safe: true

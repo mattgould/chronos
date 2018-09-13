@@ -4,7 +4,7 @@
 
   <groupId>org.apache.mesos</groupId>
   <artifactId>chronos</artifactId>
-  <version>2.5.0-SNAPSHOT</version>
+  <version>3.0.3-SNAPSHOT</version>
   <inceptionYear>2012</inceptionYear>
 
   <prerequisites>
@@ -13,33 +13,36 @@
 
   <properties>
     <encoding>UTF-8</encoding>
-    <assets.dir>${basedir}/src/main/resources/assets</assets.dir>
+    <assets.dir>${basedir}/src/main/resources/ui</assets.dir>
 
     <!-- language versions -->
-    <java.abi>1.7</java.abi>
-    <scala.version>2.11.2</scala.version>
-    <scala.abi>2.11.2</scala.abi>
+    <java.abi>1.8</java.abi>
+    <scala.version>2.11.8</scala.version>
+    <scala.abi>2.11.8</scala.abi>
 
     <!-- runtime deps versions -->
-    <akka.version>2.3.6</akka.version>
-    <cassandra-driver-core.version>2.1.0</cassandra-driver-core.version>
-    <chaos.version>0.6.3</chaos.version>
+    <akka.version>2.3.16</akka.version>
+    <cassandra-driver-core.version>3.1.2</cassandra-driver-core.version>
+    <chaos.version>0.8.7</chaos.version>
     <commons-math3.version>3.2</commons-math3.version>
-    <curator-framework.version>2.6.0</curator-framework.version>
+    <commons-codec.version>1.10</commons-codec.version>
+    <commons-email.version>1.3.3</commons-email.version>
+    <commons-lang3.version>3.5</commons-lang3.version>
+    <curator-framework.version>2.11.0</curator-framework.version>
     <guava.version>16.0.1</guava.version>
-    <jgrapht.version>0.9.1</jgrapht.version>
-    <joda-convert.version>1.7</joda-convert.version>
-    <joda-time.version>2.3</joda-time.version>
-    <lz4.version>1.2.0</lz4.version>
-    <mesos-utils.version>0.23.0</mesos-utils.version>
+    <jgrapht.version>1.0.0</jgrapht.version>
+    <joda-convert.version>1.8</joda-convert.version>
+    <joda-time.version>2.9.6</joda-time.version>
+    <lz4.version>1.3.0</lz4.version>
+    <mesos-utils.version>1.6.0</mesos-utils.version>
     <metrics.version>3.1.0</metrics.version>
-    <raven.version>4.1.2</raven.version>
+    <raven.version>7.8.0</raven.version>
 
     <!-- test deps versions -->
-    <akka-testkit.version>2.3.6</akka-testkit.version>
-    <junit.version>4.11</junit.version>
+    <akka-testkit.version>2.3.16</akka-testkit.version>
+    <junit.version>4.12</junit.version>
     <mockito.version>1.9.5</mockito.version>
-    <specs2.version>2.3.10</specs2.version>
+    <specs2.version>3.7</specs2.version>
 
     <!-- maven versions-->
     <maven-antrun-plugin.version>1.7</maven-antrun-plugin.version>
@@ -89,9 +92,6 @@
       <version>${scala.version}</version>
     </dependency>
 
-    <!-- Note: this is not yet available in a public maven repo.
-             If you use the installer, the version will be replaced
-             with the compiled version-->
     <dependency>
       <groupId>mesosphere</groupId>
       <artifactId>chaos_2.11</artifactId>
@@ -100,6 +100,10 @@
         <exclusion>
           <groupId>com.codahale.metrics</groupId>
           <artifactId>metrics-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>log4j-over-slf4j</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -127,12 +131,12 @@
       <version>${joda-convert.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.javabits.jgrapht</groupId>
+      <groupId>org.jgrapht</groupId>
       <artifactId>jgrapht-core</artifactId>
       <version>${jgrapht.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.javabits.jgrapht</groupId>
+      <groupId>org.jgrapht</groupId>
       <artifactId>jgrapht-ext</artifactId>
       <version>${jgrapht.version}</version>
     </dependency>
@@ -186,21 +190,15 @@
     </dependency>
 
     <dependency>
-      <groupId>net.kencochrane.raven</groupId>
+      <groupId>com.getsentry.raven</groupId>
       <artifactId>raven</artifactId>
-      <version>${raven.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>net.kencochrane.raven</groupId>
-      <artifactId>raven-getsentry</artifactId>
       <version>${raven.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-email</artifactId>
-      <version>1.3.2</version>
+      <version>${commons-email.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -210,7 +208,12 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.10</version>
+      <version>${commons-codec.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons-lang3.version}</version>
     </dependency>
 
     <!-- Test scope -->
@@ -228,13 +231,25 @@
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
+      <artifactId>mockito-core</artifactId>
       <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.specs2</groupId>
-      <artifactId>specs2_2.11.0-RC3</artifactId>
+      <artifactId>specs2-core_2.11</artifactId>
+      <version>${specs2.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.specs2</groupId>
+      <artifactId>specs2-mock_2.11</artifactId>
+      <version>${specs2.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.specs2</groupId>
+      <artifactId>specs2-junit_2.11</artifactId>
       <version>${specs2.version}</version>
       <scope>test</scope>
     </dependency>
@@ -256,7 +271,13 @@
     <resources>
       <resource>
         <targetPath>assets</targetPath>
-        <directory>src/main/resources/assets/app</directory>
+        <directory>src/main/resources/ui/build</directory>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>**/*.properties</include>
+        </includes>
       </resource>
     </resources>
     <pluginManagement>
@@ -394,6 +415,8 @@
         <configuration>
           <argLine>-Xmx1024m -Duser.timezone=UTC</argLine>
           <redirectTestOutputToFile>false</redirectTestOutputToFile>
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
           <includes>
             <include>**/Test*.java</include>
             <include>**/*Test.java</include>
@@ -407,14 +430,6 @@
           </systemProperties>
         </configuration>
       </plugin>
-      <!-- TODO(FL): use this plugin to run a local version directly from maven <plugin>-->
-        <!--<groupId>org.codehaus.mojo</groupId>-->
-        <!--<artifactId>exec-maven-plugin</artifactId>-->
-        <!--<version>1.2.1</version>-->
-        <!--<configuration>-->
-          <!--<mainClass>${mainClass}</mainClass>-->
-          <!--</configuration>-->
-        <!--</plugin>-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -432,17 +447,15 @@
         </executions>
       </plugin>
 
-      <!-- TODO: Add maven/scalastyle-check -->
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
         <version>${maven-clean-plugin.version}</version>
         <configuration>
           <filesets>
             <fileset>
-              <directory>src/main/resources/assets</directory>
+              <directory>src/main/resources/ui</directory>
               <includes>
-                <include>build/**</include>
-                <include>build</include>
+                <include>assets/js/bundle.js</include>
               </includes>
               <followSymlinks>false</followSymlinks>
             </fileset>
@@ -456,7 +469,7 @@
         <version>${maven-antrun-plugin.version}</version>
         <executions>
           <execution>
-            <id>ant-run-requirejs</id>
+            <id>ant-run-npm</id>
             <phase>generate-resources</phase>
             <goals>
               <goal>run</goal>
@@ -464,8 +477,6 @@
             <configuration>
               <target>
                 <property name="compile_classpath" refid="maven.compile.classpath"/>
-                <property name="configFile" value="${assets.dir}/app.build.js"/>
-                <property name="optimizerFile" value="${assets.dir}/r.js"/>
                 <property name="sourceDir" value="${assets.dir}"/>
                 <property name="failOnError" value="true"/>
                 <ant antfile="${basedir}/build.xml">

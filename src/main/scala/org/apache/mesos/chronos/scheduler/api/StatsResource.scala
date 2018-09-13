@@ -5,21 +5,23 @@ import javax.ws.rs._
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.{MediaType, Response}
 
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs._
 import com.codahale.metrics.annotation.Timed
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.Inject
+import org.apache.commons.lang3.exception.ExceptionUtils
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.graph.JobGraph
+import org.apache.mesos.chronos.scheduler.jobs._
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
 /**
- * The REST API to the PerformanceResource component of the API.
- * @author Matt Redmond (matt.redmond@airbnb.com)
- *         Returns a list of jobs, sorted by percentile run times.
- */
+  * The REST API to the PerformanceResource component of the API.
+  *
+  * @author Matt Redmond (matt.redmond@airbnb.com)
+  *         Returns a list of jobs, sorted by percentile run times.
+  */
 
 @Path(PathConstants.allStatsPath)
 @Produces(Array(MediaType.APPLICATION_JSON))
@@ -60,9 +62,19 @@ class StatsResource @Inject()(
       }
       Response.ok(output).build
     } catch {
+      case ex: IllegalArgumentException =>
+        log.log(Level.INFO, "Bad Request", ex)
+        Response
+          .status(Status.BAD_REQUEST)
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex)))
+          .build
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+        Response
+          .serverError()
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex),
+            status = Status.INTERNAL_SERVER_ERROR.toString))
+          .build
     }
   }
 }
